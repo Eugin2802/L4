@@ -1,11 +1,12 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Check, Copy, Heart, Minus, Plus, Search, ShieldCheck, ShoppingBag, Star, Upload, X } from 'lucide-react';
+import { ArrowRight, Check, Copy, Heart, MessageCircle, Minus, Plus, Search, ShieldCheck, ShoppingBag, Star, X } from 'lucide-react';
 import { useCreateOrder, useCreateReport, useListCategories, useListFavorites, useListProductReviews, useListProducts, useToggleFavorite } from '@workspace/api-client-react';
 import type { Product, Review } from '@workspace/api-client-react';
 import { ListProductsSort } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 import { PageHeading, SiteShell, StatePanel } from '@/components/site-shell';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 const money = (value: number) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 2 }).format(value);
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
@@ -23,9 +24,7 @@ export default function Marketplace() {
   const [buyer, setBuyer] = useState({ name: '', phone: '', tower: '', apartment: '', desiredDate: '', desiredTime: '' });
   const [paymentConsent, setPaymentConsent] = useState(false);
   const [paymentRevealed, setPaymentRevealed] = useState(false);
-  const [proofPreview, setProofPreview] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
-  const proofInputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState('');
   const queryClient = useQueryClient();
   const productsQuery = useListProducts({ ...(categoryId ? { categoryId } : {}), sort });
@@ -38,6 +37,22 @@ export default function Marketplace() {
   const featured = products.filter((p) => p.featured);
   const remainder = products.filter((p) => !p.featured);
   const favorites = new Set((favoritesQuery.data ?? []).map((p) => p.id));
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0);
+  const whatsappOrderMessage = cart.length
+    ? [
+      `Hola ${cart[0].sellerName}, quiero coordinar este pedido de L4:`,
+      ...cart.map((item) => `• ${quantities[item.id] ?? 1} × ${item.title}`),
+      `Total: ${money(cartTotal)}`,
+      `Nombre: ${buyer.name || 'Por confirmar'}`,
+      `Teléfono: ${buyer.phone || 'Por confirmar'}`,
+      `Torre y departamento: ${buyer.tower || '—'} · ${buyer.apartment || '—'}`,
+      buyer.desiredDate ? `Entrega solicitada: ${buyer.desiredDate}${buyer.desiredTime ? ` a las ${buyer.desiredTime}` : ''}` : '',
+      'Te enviaré aquí el comprobante de pago de Yape o Plin.',
+    ].filter((line) => line.length > 0).join('\n')
+    : '';
+  const sellerWhatsAppUrl = cart[0]?.sellerPhone
+    ? buildWhatsAppUrl(cart[0].sellerPhone, whatsappOrderMessage)
+    : null;
   const toggle = (product: Product) => toggleFavorite.mutate({ data: { productId: product.id } }, {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/l4/favorites'] }),
     onError: () => setNotice('Inicia sesión para guardar tus favoritos.'),
@@ -70,9 +85,6 @@ export default function Marketplace() {
     }
     setQuantities((current) => ({ ...current, [productId]: next }));
   };
-  const selectProof = (file?: File) => {
-    if (file?.type.startsWith('image/')) setProofPreview(URL.createObjectURL(file));
-  };
   const copySellerPhone = async () => {
     const sellerPhone = cart[0]?.sellerPhone;
     if (!sellerPhone) return;
@@ -93,7 +105,7 @@ export default function Marketplace() {
         setCart([]);
         setQuantities({});
         setCheckoutOpen(false);
-        setNotice('Pedido enviado a tu vecino. Puedes seguirlo en Mis pedidos.');
+        setNotice('Pedido enviado. Si aún no lo hiciste, coordina el pago y el comprobante por WhatsApp.');
         queryClient.invalidateQueries({ queryKey: ['/api/l4/orders'] });
       },
       onError: () => setNotice('No pudimos registrar tu pedido. Inicia sesión e inténtalo de nuevo.'),
@@ -179,8 +191,9 @@ export default function Marketplace() {
               <label className="mt-3 flex items-start gap-3 text-xs leading-5 text-muted-foreground"><input type="checkbox" checked={paymentConsent} onChange={(event) => setPaymentConsent(event.target.checked)} className="mt-0.5 accent-[#6f9f38]" data-testid="input-confirm-seller-phone" /><span>Confirmo que quiero ver el teléfono del vendedor para coordinar el pago por Yape o Plin.</span></label>
               <button onClick={() => { setPaymentRevealed(true); setCopyStatus(''); }} disabled={!paymentConsent} className="mt-3 rounded-full bg-[#2d4a67] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-45" data-testid="button-reveal-payment">Confirmar y ver datos de pago</button>
             </> : <div className="mt-3 rounded-xl bg-[#eaf4df] p-3" data-testid="panel-seller-payment">
-              <p className="text-xs font-semibold text-[#29445f]">Envía el pago por Yape o Plin a este número:</p>
-              {cart[0].sellerPhone ? <div className="mt-2 flex flex-wrap items-center gap-2"><span className="font-mono text-lg font-bold text-[#29445f]" data-testid="text-seller-phone">{cart[0].sellerPhone}</span><button onClick={copySellerPhone} className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#29445f]" data-testid="button-copy-seller-phone"><Copy size={13} />Copiar</button></div> : <p className="mt-2 text-sm text-[#8a4b2b]" data-testid="text-seller-phone-unavailable">El vendedor aún no ha registrado su teléfono de pago. Coordina directamente antes de pagar.</p>}
+              <p className="text-xs font-semibold text-[#29445f]">Coordina el pago por Yape o Plin y envía el comprobante al vendedor por WhatsApp:</p>
+              {cart[0].sellerPhone ? <div className="mt-2 flex flex-wrap items-center gap-2">{sellerWhatsAppUrl ? <a href={sellerWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-lg font-bold text-[#29445f] underline decoration-[#8ca777] underline-offset-4" data-testid="link-seller-whatsapp-phone">{cart[0].sellerPhone}</a> : <span className="font-mono text-lg font-bold text-[#29445f]" data-testid="text-seller-phone">{cart[0].sellerPhone}</span>}<button onClick={copySellerPhone} className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#29445f]" data-testid="button-copy-seller-phone"><Copy size={13} />Copiar</button>{sellerWhatsAppUrl && <a href={sellerWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#29445f]" data-testid="link-seller-whatsapp"><MessageCircle size={14} />Escribir por WhatsApp</a>}</div> : <p className="mt-2 text-sm text-[#8a4b2b]" data-testid="text-seller-phone-unavailable">El vendedor aún no ha registrado un número válido de WhatsApp. Coordina directamente antes de pagar.</p>}
+              {cart[0].sellerPhone && !sellerWhatsAppUrl && <p className="mt-2 text-xs text-[#8a4b2b]" role="alert">El número del vendedor no tiene un formato válido para abrir WhatsApp.</p>}
               {copyStatus && <p className="mt-2 text-xs text-[#52743a]" role="status" data-testid="status-copy-phone">{copyStatus}</p>}
             </div>}
           </div>
@@ -192,11 +205,9 @@ export default function Marketplace() {
             <label className="text-xs font-semibold text-[#29445f]">Fecha de entrega (opcional)<input type="date" value={buyer.desiredDate} onChange={(event) => setBuyer({ ...buyer, desiredDate: event.target.value })} className="mt-1.5 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-normal" data-testid="input-desired-date" /></label>
             <label className="text-xs font-semibold text-[#29445f]">Hora de entrega (opcional)<input type="time" value={buyer.desiredTime} onChange={(event) => setBuyer({ ...buyer, desiredTime: event.target.value })} className="mt-1.5 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-normal" data-testid="input-desired-time" /></label>
           </div>
-          <div className="mt-5 rounded-2xl border border-dashed border-[#9fb883] p-4">
-            <input ref={proofInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => selectProof(event.target.files?.[0])} data-testid="input-payment-proof" />
-            <button type="button" onClick={() => proofInputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); selectProof(event.dataTransfer.files[0]); }} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-[#52743a]" data-testid="button-payment-proof"><Upload size={15} />Elegir o arrastrar comprobante</button>
-            {proofPreview && <img src={proofPreview} alt="Vista previa del comprobante de pago" className="mx-auto mt-3 max-h-40 rounded-xl object-contain" data-testid="img-payment-proof-preview" />}
-            <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground" data-testid="text-payment-proof-storage">La imagen es solo una vista previa. No hay almacenamiento persistente disponible; no se adjuntará al pedido.</p>
+          <div className="mt-5 rounded-2xl border border-[#cbdabd] bg-[#f5f8f0] p-4" data-testid="panel-whatsapp-proof-instructions">
+            <p className="text-xs leading-5 text-[#405c2c]">Completa tus datos y abre WhatsApp para enviar el comprobante de Yape o Plin al vendedor. Luego vuelve a L4 y registra el pedido.</p>
+            {sellerWhatsAppUrl && <a href={sellerWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#2d4a67] px-4 py-2.5 text-xs font-bold text-white" data-testid="link-send-proof-whatsapp"><MessageCircle size={15} />Enviar comprobante por WhatsApp</a>}
           </div>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">Tu vecino coordinará contigo la entrega. La fecha y hora se enviarán solo si completas ambos campos.</p>
           <button onClick={buyNow} disabled={!cart.length || !buyer.name.trim() || !buyer.phone.trim() || !buyer.tower.trim() || !buyer.apartment.trim() || createOrder.isPending} className="mt-5 w-full rounded-full bg-[#2d4a67] px-5 py-3 text-sm font-bold text-white disabled:opacity-50" data-testid="button-place-order">{createOrder.isPending ? 'Enviando pedido…' : 'Enviar pedido'}</button>

@@ -29,7 +29,7 @@ Configura estos valores en un gestor de secretos; nunca los subas al repositorio
 
 ## Límites actuales
 
-- Los selectores y zonas de arrastrar imágenes muestran una vista previa, pero las fotos y comprobantes todavía no se guardan de forma persistente.
+- Las fotos de perfil y de productos muestran una vista previa, pero todavía no se guardan de forma persistente. Los comprobantes se envían directamente por WhatsApp al contacto correspondiente y no se almacenan en L4.
 - El registro en Google Sheets usa el conector de Google de Replit. Para ejecutar este código fuera de Replit, hay que reemplazar ese adaptador por credenciales y acceso propios de Google Sheets.
 - Los reportes, pedidos y solicitudes se actualizan dentro de la aplicación mientras la pantalla correspondiente está abierta; este paquete no configura avisos por correo ni notificaciones push.
 - El reporte de ventas se descarga como CSV compatible con Excel.
