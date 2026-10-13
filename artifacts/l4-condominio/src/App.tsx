@@ -1,3 +1,4 @@
+import { setBaseUrl } from '../../../lib/api-client-react/src/custom-fetch';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ClerkProvider, Show, SignIn, SignUp, useClerk } from '@clerk/react';
@@ -12,6 +13,8 @@ import { AdminPage, OrdersPage, ProfilePage, RegistrationGate, SellerListingsPag
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { Redirect } from 'wouter';
 
+const apiUrl = import.meta.env.VITE_API_URL || 'https://l4-condominio-api.onrender.com';
+setBaseUrl(apiUrl);
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
