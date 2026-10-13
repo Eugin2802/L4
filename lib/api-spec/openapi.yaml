@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: marketplace
+    description: L4 marketplace and resident accounts
+  - name: administration
+    description: Admin moderation and featured products
 paths:
   /healthz:
     get:
@@ -24,6 +28,528 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /l4/profile:
+    get:
+      operationId: getProfile
+      tags: [marketplace]
+      summary: Read the signed-in resident profile
+      responses:
+        "200":
+          description: Resident profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    post:
+      operationId: saveProfile
+      tags: [marketplace]
+      summary: Save the profile after accepting terms and age requirements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileInput"
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /l4/admin/login:
+    post:
+      operationId: adminLogin
+      tags: [administration]
+      summary: Start an administrator session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminLoginInput" }
+      responses:
+        "200":
+          description: Administrator session started
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /l4/products:
+    get:
+      operationId: listProducts
+      tags: [marketplace]
+      summary: Browse, filter and sort products
+      parameters:
+        - in: query
+          name: categoryId
+          schema: { type: string }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [featured, rating, newest]
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+    post:
+      operationId: createProduct
+      tags: [marketplace]
+      summary: Publish a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductInput" }
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+  /l4/products/{productId}:
+    patch:
+      operationId: updateProduct
+      tags: [marketplace]
+      summary: Edit an owned product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductInput" }
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+    delete:
+      operationId: deleteProduct
+      tags: [marketplace]
+      summary: Remove an owned product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /l4/products/{productId}/reviews:
+    get:
+      operationId: listProductReviews
+      tags: [marketplace]
+      summary: List product reviews
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Review" }
+  /l4/categories:
+    get:
+      operationId: listCategories
+      tags: [marketplace]
+      summary: List product categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Category" }
+    post:
+      operationId: createCategory
+      tags: [administration]
+      summary: Add a product category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategoryInput" }
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+  /l4/categories/{categoryId}:
+    patch:
+      operationId: updateCategory
+      tags: [administration]
+      summary: Rename a category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategoryInput" }
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+    delete:
+      operationId: deleteCategory
+      tags: [administration]
+      summary: Remove a category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Removed category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /l4/orders:
+    get:
+      operationId: listOrders
+      tags: [marketplace]
+      summary: List orders for the current buyer or seller
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Order" }
+    post:
+      operationId: createOrder
+      tags: [marketplace]
+      summary: Place an order with one or more products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderInput" }
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+  /l4/orders/{orderId}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [marketplace]
+      summary: Seller updates order progress
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderStatusInput" }
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+  /l4/orders/{orderId}/confirmation:
+    post:
+      operationId: confirmOrderReceived
+      tags: [marketplace]
+      summary: Buyer confirms delivery
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+  /l4/reviews:
+    post:
+      operationId: createReview
+      tags: [marketplace]
+      summary: Rate a delivered product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewInput" }
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+  /l4/reports:
+    post:
+      operationId: createReport
+      tags: [marketplace]
+      summary: Report a product, comment or user to the administrator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReportInput" }
+      responses:
+        "201":
+          description: Created report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Report" }
+  /l4/favorites:
+    get:
+      operationId: listFavorites
+      tags: [marketplace]
+      summary: List favorited products
+      responses:
+        "200":
+          description: Favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+    post:
+      operationId: toggleFavorite
+      tags: [marketplace]
+      summary: Add or remove a favorite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FavoriteInput" }
+      responses:
+        "200":
+          description: Favorite state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /l4/featured-requests:
+    get:
+      operationId: listFeaturedRequests
+      tags: [administration]
+      summary: List highlight requests for administrator approval
+      responses:
+        "200":
+          description: Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FeaturedRequest" }
+    post:
+      operationId: createFeaturedRequest
+      tags: [marketplace]
+      summary: Request a paid highlight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeaturedRequestInput" }
+      responses:
+        "201":
+          description: Highlight request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeaturedRequest" }
+  /l4/featured-requests/{requestId}/approve:
+    post:
+      operationId: approveFeaturedRequest
+      tags: [administration]
+      summary: Approve a highlight request and feature the product
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Approved request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeaturedRequest" }
+  /l4/admin/overview:
+    get:
+      operationId: getAdminOverview
+      tags: [administration]
+      summary: Admin totals, reports and featured-slot usage
+      responses:
+        "200":
+          description: Admin overview
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminOverview" }
+  /l4/admin/users:
+    get:
+      operationId: listUsers
+      tags: [administration]
+      summary: List registered residents
+      responses:
+        "200":
+          description: Registered users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Profile" }
+  /l4/admin/users/{userId}/block:
+    patch:
+      operationId: blockUser
+      tags: [administration]
+      summary: Block or unblock a resident
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BlockUserInput" }
+      responses:
+        "200":
+          description: Updated resident
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+  /l4/admin/products/{productId}/featured:
+    patch:
+      operationId: setProductFeatured
+      tags: [administration]
+      summary: Add or remove an administrator-approved highlight
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeaturedToggleInput" }
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+  /l4/admin/reports:
+    get:
+      operationId: listReports
+      tags: [administration]
+      summary: Review user reports
+      responses:
+        "200":
+          description: Reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Report" }
+  /l4/admin/reports/{reportId}:
+    patch:
+      operationId: resolveReport
+      tags: [administration]
+      summary: Resolve a report
+      parameters:
+        - in: path
+          name: reportId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReportResolutionInput" }
+      responses:
+        "200":
+          description: Updated report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Report" }
+  /l4/admin/reviews/{reviewId}:
+    delete:
+      operationId: deleteReview
+      tags: [administration]
+      summary: Remove an inappropriate comment
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Removed comment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /l4/admin/settings:
+    get:
+      operationId: getAdminSettings
+      tags: [administration]
+      summary: Get current highlight price and payment contact
+      responses:
+        "200":
+          description: Admin settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSettings" }
+    patch:
+      operationId: updateAdminSettings
+      tags: [administration]
+      summary: Update highlight price and Yape or Plin contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminSettingsInput" }
+      responses:
+        "200":
+          description: Updated admin settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminSettings" }
+  /l4/seller/overview:
+    get:
+      operationId: getSellerOverview
+      tags: [marketplace]
+      summary: Seller analytics and monthly sales export data
+      responses:
+        "200":
+          description: Seller overview
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SellerOverview" }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +559,263 @@ components:
           type: string
       required:
         - status
+    ActionResult:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+      required: [success, message]
+    Profile:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        displayName: { type: string }
+        shopName: { type: string }
+        phone: { type: string }
+        avatarUrl: { type: ["string", "null"] }
+        isBlocked: { type: boolean }
+        isAdmin: { type: boolean }
+        createdAt: { type: string }
+      required: [id, email, displayName, shopName, phone, isBlocked, isAdmin, createdAt]
+    ProfileInput:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        displayName: { type: string, minLength: 2, maxLength: 80 }
+        shopName: { type: string, minLength: 2, maxLength: 80 }
+        phone: { type: string, minLength: 6, maxLength: 20 }
+        avatarUrl: { type: ["string", "null"] }
+        acceptedTerms: { type: boolean }
+        isAdult: { type: boolean }
+      required: [email, displayName, shopName, phone, acceptedTerms, isAdult]
+    AdminLoginInput:
+      type: object
+      properties:
+        password: { type: string, minLength: 1, maxLength: 256 }
+      required: [password]
+    Category:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+      required: [id, name]
+    CategoryInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 60 }
+      required: [name]
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        sellerId: { type: string }
+        sellerName: { type: string }
+        sellerPhone: { type: ["string", "null"] }
+        shopName: { type: string }
+        title: { type: string }
+        description: { type: string }
+        price: { type: number }
+        categoryId: { type: string }
+        categoryName: { type: string }
+        imageUrl: { type: ["string", "null"] }
+        featured: { type: boolean }
+        featuredUntil: { type: ["string", "null"] }
+        averageRating: { type: number }
+        reviewCount: { type: integer }
+        createdAt: { type: string }
+      required: [id, sellerId, sellerName, sellerPhone, shopName, title, description, price, categoryId, categoryName, featured, averageRating, reviewCount, createdAt]
+    ProductInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 2, maxLength: 100 }
+        description: { type: string, maxLength: 2000 }
+        price: { type: number, minimum: 0.01 }
+        categoryId: { type: string }
+        imageUrl: { type: ["string", "null"] }
+      required: [title, description, price, categoryId]
+    OrderLineInput:
+      type: object
+      properties:
+        productId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+      required: [productId, quantity]
+    OrderInput:
+      type: object
+      properties:
+        sellerId: { type: string }
+        buyerName: { type: string }
+        phone: { type: string }
+        tower: { type: string }
+        apartment: { type: string }
+        desiredAt: { type: ["string", "null"] }
+        paymentProofUrl: { type: ["string", "null"] }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/OrderLineInput" }
+      required: [sellerId, buyerName, phone, tower, apartment, items]
+    OrderStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [accepted, preparing, ready, delivered]
+      required: [status]
+    OrderLine:
+      type: object
+      properties:
+        productId: { type: string }
+        productName: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+      required: [productId, productName, quantity, unitPrice]
+    Order:
+      type: object
+      properties:
+        id: { type: string }
+        sellerId: { type: string }
+        sellerName: { type: string }
+        buyerId: { type: string }
+        buyerName: { type: string }
+        phone: { type: string }
+        tower: { type: string }
+        apartment: { type: string }
+        desiredAt: { type: ["string", "null"] }
+        paymentProofUrl: { type: ["string", "null"] }
+        total: { type: number }
+        status: { type: string }
+        confirmed: { type: boolean }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrderLine" }
+        createdAt: { type: string }
+      required: [id, sellerId, sellerName, buyerId, buyerName, phone, tower, apartment, total, status, confirmed, items, createdAt]
+    ReviewInput:
+      type: object
+      properties:
+        orderId: { type: string }
+        productId: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, maxLength: 1000 }
+      required: [orderId, productId, rating]
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        authorName: { type: string }
+        rating: { type: integer }
+        comment: { type: string }
+      required: [id, productId, authorName, rating, comment]
+    FeaturedToggleInput:
+      type: object
+      properties:
+        featured: { type: boolean }
+      required: [featured]
+    ReportInput:
+      type: object
+      properties:
+        targetType:
+          type: string
+          enum: [product, comment, user]
+        targetId: { type: string }
+        reason: { type: string, minLength: 5, maxLength: 1000 }
+      required: [targetType, targetId, reason]
+    Report:
+      type: object
+      properties:
+        id: { type: string }
+        targetType: { type: string }
+        targetId: { type: string }
+        reporterName: { type: string }
+        reason: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+      required: [id, targetType, targetId, reporterName, reason, status, createdAt]
+    ReportResolutionInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [reviewed, dismissed]
+      required: [status]
+    FavoriteInput:
+      type: object
+      properties:
+        productId: { type: string }
+      required: [productId]
+    FeaturedRequestInput:
+      type: object
+      properties:
+        productId: { type: string }
+        receiptUrl: { type: ["string", "null"] }
+      required: [productId]
+    FeaturedRequest:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        productName: { type: string }
+        sellerName: { type: string }
+        price: { type: number }
+        receiptUrl: { type: ["string", "null"] }
+        featuredUntil: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string }
+      required: [id, productId, productName, sellerName, price, receiptUrl, featuredUntil, status, createdAt]
+    AdminOverview:
+      type: object
+      properties:
+        userCount: { type: integer }
+        pendingReports: { type: integer }
+        pendingFeatured: { type: integer }
+        featuredToday: { type: integer }
+        dailyFeaturedLimit: { type: integer }
+      required: [userCount, pendingReports, pendingFeatured, featuredToday, dailyFeaturedLimit]
+    BlockUserInput:
+      type: object
+      properties:
+        blocked: { type: boolean }
+      required: [blocked]
+    AdminSettings:
+      type: object
+      properties:
+        featuredPrice: { type: number }
+        paymentPhone: { type: string }
+        featuredDurationHours: { type: integer }
+        featuredToday: { type: integer }
+        dailyFeaturedLimit: { type: integer }
+        sheetConfigured: { type: boolean }
+        sheetUrl: { type: ["string", "null"] }
+      required: [featuredPrice, paymentPhone, featuredDurationHours, featuredToday, dailyFeaturedLimit, sheetConfigured, sheetUrl]
+    AdminSettingsInput:
+      type: object
+      properties:
+        featuredPrice: { type: number, minimum: 1 }
+        paymentPhone: { type: string }
+        featuredDurationHours: { type: integer, minimum: 1, maximum: 168 }
+      required: [featuredPrice, paymentPhone, featuredDurationHours]
+    MonthlySales:
+      type: object
+      properties:
+        month: { type: string }
+        sales: { type: number }
+        orderCount: { type: integer }
+      required: [month, sales, orderCount]
+    SellerOverview:
+      type: object
+      properties:
+        monthlySales:
+          type: array
+          items: { $ref: "#/components/schemas/MonthlySales" }
+        topProducts:
+          type: array
+          items: { $ref: "#/components/schemas/Product" }
+        frequentBuyers:
+          type: array
+          items: { type: string }
+        orderCount: { type: integer }
+        totalSales: { type: number }
+      required: [monthlySales, topProducts, frequentBuyers, orderCount, totalSales]
 

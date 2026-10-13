@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "L4 — Laureles 4"
+description = "Marketplace privado para la comunidad del condominio Laureles 4. Permite publicar y descubrir productos, coordinar pedidos directos por Yape o Plin, calificar compras y administrar reportes y destacados."
+version = "1.0.0"
+id = "artifacts/l4-condominio"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24828
+
+[services.development]
+run = "pnpm --filter @workspace/l4-condominio run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/l4-condominio", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/l4-condominio/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24828"
+BASE_PATH = "/"

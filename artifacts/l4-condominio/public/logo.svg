@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+  <rect width="160" height="160" rx="28" fill="#2d4a67"/>
+  <path d="M79 129c-2-28-4-48-3-78" fill="none" stroke="#a2d64b" stroke-linecap="round" stroke-width="5"/>
+  <path d="M76 75C52 70 40 57 39 38c19 1 34 11 38 31M77 96c20-3 33-14 36-32-18 1-31 9-36 25M78 113c-18-2-29-12-32-27 15 1 27 8 33 21" fill="#a2d64b"/>
+  <text x="80" y="28" fill="#fffefa" font-family="Georgia,serif" font-size="22" font-weight="700" text-anchor="middle">L4</text>
+</svg>

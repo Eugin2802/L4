@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "wGX5BQTpa38cUvSvHQGpo"
+uri = "file://generated-artifacts/l4-condominio-source.zip"
+type = "unspecified"
+title = "Código de L4 para descargar"
+description = "Archivo ZIP con el código fuente de la aplicación, el API y sus instrucciones de instalación. No incluye claves ni contraseñas."
+logical_id = "d95677d9-2907-45d9-b71f-eabf4147f176"
+content_hash = "sha256:bd1ed88fd7d249bdbf04e4c48023be7b63f901f090e0cf636e965c21ef476eeb"
+size = 318836
+mtime_ms = 1791862523358
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:b69fe465-9c56-442e-868d-3af01a0d4eda/d95677d9-2907-45d9-b71f-eabf4147f176/e0628bc5-8b45-4f44-8b78-c255a0718a64"
+storage_version_token = "1791862585063626"
+content_type = "application/octet-stream"
