@@ -292,8 +292,8 @@ router.post("/l4/profile", signedIn, async (req, res) => {
         createdAt,
       });
     } catch (cause) {
-      console.error("L4 Google Sheets registration sync failed:", cause);
-      return error(res, 502, "No se pudo guardar tu registro en la hoja del administrador. Inténtalo otra vez.");
+      // Si Google Sheets falla o no está configurado, solo lo registramos en consola pero no bloqueamos al usuario
+      console.warn("L4 Google Sheets registration sync skipped/failed:", cause);
     }
   }
   await pool.query(
