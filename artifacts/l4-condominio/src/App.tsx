@@ -1,7 +1,7 @@
-import { setBaseUrl } from '../../../lib/api-client-react/src/custom-fetch';
+import { setBaseUrl, setAuthTokenGetter } from '../../../lib/api-client-react/src/custom-fetch';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
-import { ClerkProvider, Show, SignIn, SignUp, useClerk } from '@clerk/react';
+import { ClerkProvider, Show, SignIn, SignUp, useClerk, useAuth } from '@clerk/clerk-react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -15,8 +15,6 @@ import { Redirect } from 'wouter';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'https://l4-condominio-api.onrender.com';
 setBaseUrl(apiUrl);
-import { useAuth } from '@clerk/clerk-react';
-import { setAuthTokenGetter } from '../../lib/api-client-react/src/custom-fetch';
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
