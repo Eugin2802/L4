@@ -15,6 +15,8 @@ import { Redirect } from 'wouter';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'https://l4-condominio-api.onrender.com';
 setBaseUrl(apiUrl);
+import { useAuth } from '@clerk/clerk-react';
+import { setAuthTokenGetter } from '../../lib/api-client-react/src/custom-fetch';
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
@@ -190,6 +192,20 @@ function ClerkProviderWithRoutes() {
 
 function App() {
   if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
+
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    setAuthTokenGetter(async () => {
+      try {
+        return await getToken();
+      } catch (error) {
+        console.error("Error obteniendo el token de Clerk:", error);
+        return null;
+      }
+    });
+  }, [getToken]);
+
   return <WouterRouter base={basePath}><ClerkProviderWithRoutes /></WouterRouter>;
 }
 
