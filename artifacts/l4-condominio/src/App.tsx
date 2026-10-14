@@ -168,6 +168,7 @@ function ClerkProviderWithRoutes() {
     routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
   >
     <QueryClientProvider client={queryClient}>
+      <TokenInjector />
       <TooltipProvider>
         <ClerkQueryClientCacheInvalidator />
         <Switch>
@@ -187,10 +188,7 @@ function ClerkProviderWithRoutes() {
     </QueryClientProvider>
   </ClerkProvider>;
 }
-
-function App() {
-  if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
-
+function TokenInjector() {
   const { getToken } = useAuth();
 
   useEffect(() => {
@@ -204,6 +202,10 @@ function App() {
     });
   }, [getToken]);
 
+  return null;
+}
+function App() {
+  if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
   return <WouterRouter base={basePath}><ClerkProviderWithRoutes /></WouterRouter>;
 }
 
