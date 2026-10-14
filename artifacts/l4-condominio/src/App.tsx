@@ -148,7 +148,7 @@ function SignUpPage() {
 }
 
 function HomeRedirect() {
-  return <><Show when="signed-in"><Marketplace /></Show><Show when="signed-out"><Marketplace /></Show></>;
+  return <Marketplace />;
 }
 
 function RoutedErrorBoundary({ children, resetKey }: { children: ReactNode; resetKey: string }) {
