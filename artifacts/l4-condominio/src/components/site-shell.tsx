@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { ArrowRight, LogIn, Menu, PackageCheck, ShoppingBag, Store, UserRound, X, ListChecks } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-
+import { useUser, UserButton } from '@clerk/react';
 const navItems = [
   { href: '/', label: 'Mercado', icon: ShoppingBag },
   { href: '/orders', label: 'Mis pedidos', icon: PackageCheck },
@@ -11,41 +11,60 @@ const navItems = [
 ];
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
 
-export function SiteShell({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
-  return (
-    <div className="l4-shell l4-grain min-h-[100dvh] text-foreground">
-      <div className="border-b border-white/10 bg-[#2d4a67] text-center text-xs font-medium tracking-wide text-white/90">
-        Hecho por vecinos. Solo para residentes de Laureles 4.
-      </div>
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-5 px-5 py-3.5 md:px-9">
-          <Link href="/" className="flex shrink-0 items-center gap-3" data-testid="link-brand-home">
-            <img src={logoAsset} className="h-12 w-12 rounded-xl object-cover object-top shadow-sm" alt="Los Laureles Condominio de Departamentos, Cuarta Etapa" data-testid="img-l4-logo" />
-            <span className="hidden text-sm font-semibold leading-tight text-[#29445f] sm:block">Laureles 4<span className="block pt-0.5 text-[11px] font-normal tracking-wide text-muted-foreground">Mercado del vecindario</span></span>
-          </Link>
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Navegación principal">
-            {navItems.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors ${location === href ? 'bg-[#eaf4df] font-semibold text-[#2d4a67]' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
-                <Icon size={16} strokeWidth={1.8} />
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="hidden items-center gap-2 sm:flex">
-            <Link href="/sign-in" className="rounded-full px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" data-testid="link-sign-in"><LogIn size={16} className="mr-1.5 inline" />Ingresar</Link>
-            <Link href="/register" className="rounded-full bg-[#a2d64b] px-5 py-2.5 text-sm font-bold text-[#243c54] shadow-sm transition-transform hover:-translate-y-0.5" data-testid="link-join">Unirme a la comunidad <ArrowRight size={15} className="ml-1 inline" /></Link>
-          </div>
-          <button className="rounded-xl p-2 text-foreground lg:hidden" aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setMenuOpen(!menuOpen)} data-testid="button-mobile-menu">
-            {menuOpen ? <X size={21} /> : <Menu size={21} />}
-          </button>
-        </div>
-        {menuOpen && <nav className="grid gap-1 border-t border-border px-5 py-3 lg:hidden" aria-label="Navegación móvil">
-          {navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium hover:bg-muted" data-testid={`link-mobile-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon size={17} />{label}</Link>)}
-          <Link href="/register" onClick={() => setMenuOpen(false)} className="mt-1 rounded-xl bg-[#a2d64b] px-4 py-3 text-center text-sm font-bold text-[#243c54]" data-testid="link-mobile-join">Unirme a la comunidad</Link>
-        </nav>}
-      </header>
+      export function SiteShell({ children }: { children: ReactNode }) {
+        const [location] = useLocation();
+        const [menuOpen, setMenuOpen] = useState(false);
+        const { isSignedIn, isLoaded } = useUser();
+
+        return (
+          <div className="l4-shell l4-grain min-h-[100dvh] text-foreground">
+            <div className="border-b border-white/10 bg-[#2d4a67] text-center text-xs font-medium tracking-wide text-white/90">
+              Hecho por vecinos. Solo para residentes de Laureles 4.
+            </div>
+            <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+              <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-5 px-5 py-3.5 md:px-9">
+                <Link href="/" className="flex shrink-0 items-center gap-3" data-testid="link-brand-home">
+                  <img src={logoAsset} className="h-12 w-12 rounded-xl object-cover object-top shadow-sm" alt="Los Laureles Condominio de Departamentos, Cuarta Etapa" data-testid="img-l4-logo" />
+                  <span className="hidden text-sm font-semibold leading-tight text-[#29445f] sm:block">Laureles 4<span className="block pt-0.5 text-[11px] font-normal tracking-wide text-muted-foreground">Mercado del vecindario</span></span>
+                </Link>
+                <nav className="hidden items-center gap-1 lg:flex" aria-label="Navegación principal">
+                  {navItems.map(({ href, label, icon: Icon }) => (
+                    <Link key={href} href={href} className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors ${location === href ? 'bg-[#eaf4df] font-semibold text-[#2d4a67]' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
+                      <Icon size={16} strokeWidth={1.8} />
+                      {label}
+                    </Link>
+                  ))}
+                </nav>
+
+                {/* Sección dinámica de autenticación y botón de cerrar sesión */}
+                <div className="hidden items-center gap-3 sm:flex">
+                  {isLoaded && isSignedIn ? (
+                    <div className="flex items-center gap-3" data-testid="container-user-logged-in">
+                      <UserButton/>
+                    </div>
+                  ) : (
+                    <>
+                      <Link href="/sign-in" className="rounded-full px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" data-testid="link-sign-in">
+                        <LogIn size={16} className="mr-1.5 inline" />Ingresar
+                      </Link>
+                      <Link href="/register" className="rounded-full bg-[#a2d64b] px-5 py-2.5 text-sm font-bold text-[#243c54] shadow-sm transition-transform hover:-translate-y-0.5" data-testid="link-join">
+                        Unirme a la comunidad <ArrowRight size={15} className="ml-1 inline" />
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <button className="rounded-xl p-2 text-foreground lg:hidden" aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setMenuOpen(!menuOpen)} data-testid="button-mobile-menu">
+                  {menuOpen ? <X size={21} /> : <Menu size={21} />}
+                </button>
+              </div>
+              {menuOpen && <nav className="grid gap-1 border-t border-border px-5 py-3 lg:hidden" aria-label="Navegación móvil">
+                {navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium hover:bg-muted" data-testid={`link-mobile-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon size={17} />{label}</Link>)}
+                {!isSignedIn ? (
+                  <Link href="/register" onClick={() => setMenuOpen(false)} className="mt-1 rounded-xl bg-[#a2d64b] px-4 py-3 text-center text-sm font-bold text-[#243c54]" data-testid="link-mobile-join">Unirme a la comunidad</Link>
+                ) : null}
+              </nav>}
+            </header>
       <main>{children}</main>
       <footer className="mt-20 border-t border-border/70 bg-[#2d4a67] text-white">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-6 px-5 py-10 sm:flex-row sm:items-end sm:justify-between md:px-9">
