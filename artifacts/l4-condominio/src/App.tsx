@@ -28,10 +28,11 @@ function stripBase(path: string) {
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: 'clerk',
-  options: {
+  layout: {
     logoPlacement: 'inside' as const,
     logoLinkUrl: basePath || '/',
     logoImageUrl: `${window.location.origin}${logoAsset}`,
+    unsafe_disableDevelopmentModeWarnings: true,
   },
   variables: {
     colorPrimary: '#2d4a67',
@@ -48,8 +49,8 @@ const clerkAppearance = {
   elements: {
     rootBox: 'w-full flex justify-center',
     cardBox: 'bg-[#fffefa] rounded-[1.5rem] w-[440px] max-w-full overflow-hidden shadow-xl',
-    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
-    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    card: '!shadow-none !border-0 !bg-[#fffefa] !rounded-none',
+    footer: '!shadow-none !border-0 !bg-[#fffefa] !rounded-none',
     headerTitle: 'text-[#29445f] font-semibold',
     headerSubtitle: 'text-[#748070]',
     socialButtonsBlockButtonText: 'text-[#29445f] font-semibold',
@@ -62,7 +63,7 @@ const clerkAppearance = {
     alertText: 'text-[#9e4036]',
     logoBox: 'rounded-xl overflow-hidden',
     logoImage: 'object-cover',
-    socialButtonsBlockButton: 'rounded-xl border-[#d9dfd3]',
+    socialButtonsBlockButton: 'rounded-xl border-[#d9dfd3] bg-[#fffefa]',
     formButtonPrimary: 'rounded-full bg-[#2d4a67] text-white shadow-none',
     formFieldInput: 'rounded-xl border-[#d9dfd3] bg-[#faf9f4] text-[#29445f]',
     footerAction: 'text-[#748070]',
@@ -70,7 +71,7 @@ const clerkAppearance = {
     alert: 'rounded-xl',
     otpCodeFieldInput: 'rounded-lg border-[#d9dfd3]',
     formFieldRow: 'gap-2',
-    main: 'gap-5',
+    main: 'gap-5 bg-[#fffefa]',
   },
 };
 const spanishClerkLocalization = {
