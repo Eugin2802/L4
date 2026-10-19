@@ -3,8 +3,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Check, Copy, Heart, MessageCircle, Minus, Plus, Search, ShieldCheck, ShoppingBag, Star, X } from 'lucide-react';
 import { useCreateOrder, useCreateReport, useListCategories, useListFavorites, useListProductReviews, useListProducts, useToggleFavorite } from '@workspace/api-client-react';
 import type { Product, Review } from '@workspace/api-client-react';
+import { useUser } from '@clerk/react';
 import { ListProductsSort } from '@workspace/api-client-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { PageHeading, SiteShell, StatePanel } from '@/components/site-shell';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
@@ -12,6 +13,8 @@ const money = (value: number) => new Intl.NumberFormat('es-PE', { style: 'curren
 const logoAsset = `${import.meta.env.BASE_URL}laureles-logo.png`;
 
 export default function Marketplace() {
+  const [, setLocation] = useLocation();
+  const { isSignedIn } = useUser();
   const [categoryId, setCategoryId] = useState('');
   const [sort, setSort] = useState<ListProductsSort>('featured');
   const [search, setSearch] = useState('');
@@ -96,6 +99,11 @@ export default function Marketplace() {
     }
   };
   const buyNow = () => {
+    if (!isSignedIn) {
+      setLocation('/sign-in');
+      return;
+    }
+    if (!cart.length) return;
     if (!cart.length) return;
     const desiredAt = buyer.desiredDate && buyer.desiredTime
       ? new Date(`${buyer.desiredDate}T${buyer.desiredTime}`).toISOString()
