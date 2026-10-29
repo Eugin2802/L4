@@ -259,7 +259,7 @@ router.post("/l4/admin/login", async (req, res) => {
   const token = `${timestamp}.${adminSignature(timestamp)}`;
   res.setHeader(
     "Set-Cookie",
-    `l4_admin=${token}; Path=/api/l4/admin; Max-Age=28800; HttpOnly; Secure; SameSite=Strict`,
+    `l4_admin=${token}; Path=/api/l4/admin; Max-Age=28800; HttpOnly; Secure; SameSite=None`,
   );
   return res.json({ success: true, message: "Sesión de administración iniciada." });
 });
